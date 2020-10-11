@@ -251,10 +251,31 @@ bool energizeSpaceSolenoid(int val) {
   return false;
 }
 
+#define READY PB10
+#define BUSY PB1
+
+char * stringToPrint = "ABCDEFGHIJKLMNOPQRSTUVXYZ0123456789";
+
+int state = 0;
+int ind = 0;
 // the loop function runs over and over again forever
 void loop() {
-  digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(200);                       // wait for a second
-  digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-  delay(200);                       // wait for a second
+  char ch = stringToPrint[ind];
+  int val = asciiToCorrespondanceCode[ch & 0x7f];
+  if (state != 2) {
+    if (digitalRead(READY)) {
+      energizeSelectionSolenoids(val);
+      state = 0;
+    } else {
+      deEnergizeAllSolenoids();
+    }
+  }
+  if (digitalRead(BUSY) && (state == 0 )  ) {
+    state = 1;
+    ind++;
+    if (stringToPrint[ind]==0) {
+      state = 2;
+    }
+  }
+  delay(1);
 }
