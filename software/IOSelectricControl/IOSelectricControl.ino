@@ -148,6 +148,13 @@ int asciiToCorrespondanceCode [] = {
   CC_NUL// DEL - NA 
   };
 
+#define SHIFT_UC 1
+#define SHIFT_LC 0
+
+int shiftState; 
+
+
+
 // the setup function runs once when you press reset or power the board
 void setup() {
   // initialize digital pin LED_BUILTIN as an output.
@@ -160,6 +167,88 @@ void setup() {
   pinMode(PB0, OUTPUT); // R5  
   pinMode(PB1, INPUT);  // b input
   pinMode(PB10, INPUT); // a input - The ready to fire signal
+  shiftState = SHIFT_LC; 
+}
+
+#define SOL_T2 PA2
+#define SOL_CK PA3
+#define SOL_T1 PA4
+#define SOL_R2A PA5
+#define SOL_R1 PA6
+#define SOL_R2 PA7
+#define SOL_R5 PB0
+#define SOL_SP PA1
+#define SOL_UC PB2
+#define SOL_LC PB11
+#define SOL_INDEX PA0
+#define SOL_CR PC15
+#define SOL_TAB PC14
+#define SOL_BSP PB9
+
+void energizeSelectionSolenoids (int val) {
+  if (val & CC_T2) { 
+    digitalWrite (SOL_T2, HIGH);
+  } 
+  if (val & CC_CK) { 
+    digitalWrite (SOL_CK, HIGH);
+  } 
+  if (val & CC_T1) { 
+    digitalWrite (SOL_T1, HIGH);
+  } 
+  if (val & CC_R2A) { 
+    digitalWrite (SOL_R2A, HIGH);
+  } 
+  if (val & CC_R1) { 
+    digitalWrite (SOL_R1, HIGH);
+  } 
+  if (val & CC_R2) { 
+    digitalWrite (SOL_R2, HIGH);
+  } 
+  if (val & CC_R5) { 
+    digitalWrite (SOL_R5, HIGH);
+  } 
+}
+
+void deEnergizeAllSolenoids() {
+    digitalWrite (SOL_T2, LOW);
+    digitalWrite (SOL_CK, LOW);
+    digitalWrite (SOL_T1, LOW);
+    digitalWrite (SOL_R2A, LOW);
+    digitalWrite (SOL_R1, LOW);
+    digitalWrite (SOL_R2, LOW);
+    digitalWrite (SOL_R5, LOW);
+    digitalWrite (SOL_UC, LOW);
+    digitalWrite (SOL_LC, LOW);
+    digitalWrite (SOL_SP, LOW);
+    digitalWrite (SOL_CR, LOW);
+    digitalWrite (SOL_TAB, LOW);
+    digitalWrite (SOL_BSP, LOW);
+    digitalWrite (SOL_INDEX, LOW);
+}
+
+
+bool energizeShiftSolenoids(int val) {
+  if (val & CC_UC) { // We need to go to UpperCase
+    if (shiftState = SHIFT_LC) { // but currently we are in lower case
+      digitalWrite (SOL_UC, HIGH); // start moving to uppercase
+      return true;
+    }
+  } else { // We need to go to Lower Case
+    if (shiftState == SHIFT_UC) { // but we are in upper case
+      digitalWrite (SOL_LC, HIGH); // energize lower case solenoid.
+      return true; // operation in progress 
+    }
+  }
+  return false; // didn't do anything
+}
+
+
+bool energizeSpaceSolenoid(int val) {
+  if (val & CC_SP) {
+    digitalWrite (SOL_SP, HIGH);
+    return true;
+  }
+  return false;
 }
 
 // the loop function runs over and over again forever
