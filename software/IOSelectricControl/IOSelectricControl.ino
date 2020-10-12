@@ -168,6 +168,8 @@ void setup() {
   pinMode(PB1, INPUT);  // b input
   pinMode(PB10, INPUT); // a input - The ready to fire signal
   shiftState = SHIFT_LC; 
+  Serial.begin(9600);
+  Serial.write("SELECTRIC> ");
 }
 
 #define SOL_T2 PA2
@@ -262,11 +264,48 @@ int ind = 0;
 void loop() {
   char ch = stringToPrint[ind];
   int val = asciiToCorrespondanceCode[ch & 0x7f];
+  char tmp;
+
+  if (Serial.available()> 0) {
+    tmp = Serial.read();
+    if ((tmp >= 'a') && (tmp <= 'z')) {
+      tmp &= ~0x20; // to upper case
+    }
+    switch (tmp) {
+      case 'C':
+        Serial.write(tmp);
+        Serial.println();
+        Serial1.print("SELECTRIC> ");
+        break;
+      case 'H':
+        Serial1.println();
+        Serial1.println("IBM SELECTRIC 731 COMMANDER HELP");
+        Serial1.println("=======================");
+        Serial1.println("H - HELP");
+        Serial1.println("C - Do a CR");
+        Serial1.println("I - Do an Index");
+        Serial1.println("P - Print a charcter - cycles through all off them.");
+        Serial1.println("U - Set upper case");
+        Serial1.println("L - Set lower case");
+        Serial1.println("L - Set lower case");
+        Serial1.println("T - Do a Tab operation");
+        Serial1.println("S - Do a Space operation");
+        Serial1.println("A - Print a line with the alphatbet and numbers");
+        Serial1.println();
+        Serial1.print("SELECTRIC> ");
+        break;
+      case '\r': 
+        Serial1.println();
+        Serial1.print("IBM BSC COMMANDER> " );
+    }
+  } 
   if (state != 2) {
     if (digitalRead(READY)) {
+      digitalWrite(LED_BUILTIN, HIGH);
       energizeSelectionSolenoids(val);
       state = 0;
     } else {
+      digitalWrite(LED_BUILTIN, LOW);
       deEnergizeAllSolenoids();
     }
   }
