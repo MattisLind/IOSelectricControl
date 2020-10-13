@@ -256,65 +256,127 @@ bool energizeSpaceSolenoid(int val) {
 #define READY PB10
 #define BUSY PB1
 
-char * stringToPrint = "ABCDEFGHIJKLMNOPQRSTUVXYZ0123456789";
+bool isReady() {
+  return digitalRead(READY)==HIGH;
+}
 
+bool isBusy() {
+  return digitalRead(BUSY)==HIGH;
+}
+
+char * stringToPrint = "CDEFGHIJKLMNOPQRSTUVXYZ0123456789A!\"#%&/(),.;:-";
+
+int cmd;
 int state = 0;
 int ind = 0;
+char ch = stringToPrint[ind];
+int val = asciiToCorrespondanceCode[ch & 0x7f];
+char tmp;
+
 // the loop function runs over and over again forever
 void loop() {
-  char ch = stringToPrint[ind];
-  int val = asciiToCorrespondanceCode[ch & 0x7f];
-  char tmp;
-
+ 
   if (Serial.available()> 0) {
     tmp = Serial.read();
     if ((tmp >= 'a') && (tmp <= 'z')) {
       tmp &= ~0x20; // to upper case
     }
     switch (tmp) {
-      case 'C':
+      case 'P':
         Serial.write(tmp);
         Serial.println();
-        Serial1.print("SELECTRIC> ");
+        if (state != 0) {
+          Serial.println("Selectric not ready");
+        } else {
+          ch = stringToPrint[ind++];
+          if (stringToPrint[ind]==0) {
+            ind=0;
+          }
+          val = asciiToCorrespondanceCode[ch & 0x7f];
+          state = 1;
+          cmd = 0;
+        }
+        Serial.print("SELECTRIC> ");
+        break;
+      case 'A':
+        Serial.write(tmp);
+        Serial.println();
+          ch = stringToPrint[ind++];
+          val = asciiToCorrespondanceCode[ch & 0x7f];
+          state = 1;
+          cmd = 0;
+        Serial.print("SELECTRIC> ");
         break;
       case 'H':
-        Serial1.println();
-        Serial1.println("IBM SELECTRIC 731 COMMANDER HELP");
-        Serial1.println("=======================");
-        Serial1.println("H - HELP");
-        Serial1.println("C - Do a CR");
-        Serial1.println("I - Do an Index");
-        Serial1.println("P - Print a charcter - cycles through all off them.");
-        Serial1.println("U - Set upper case");
-        Serial1.println("L - Set lower case");
-        Serial1.println("L - Set lower case");
-        Serial1.println("T - Do a Tab operation");
-        Serial1.println("S - Do a Space operation");
-        Serial1.println("A - Print a line with the alphatbet and numbers");
-        Serial1.println();
-        Serial1.print("SELECTRIC> ");
+        Serial.println();
+        Serial.println("IBM SELECTRIC 731 COMMANDER HELP");
+        Serial.println("=======================");
+        Serial.println("H - HELP");
+        Serial.println("C - Do a CR");
+        Serial.println("I - Do an Index");
+        Serial.println("P - Print a charcter - cycles through all off them.");
+        Serial.println("U - Set upper case");
+        Serial.println("L - Set lower case");
+        Serial.println("L - Set lower case");
+        Serial.println("T - Do a Tab operation");
+        Serial.println("S - Do a Space operation");
+        Serial.println("A - Print a line with the alphatbet and numbers");
+        Serial.println();
+        Serial.print("SELECTRIC> ");
         break;
       case '\r': 
-        Serial1.println();
-        Serial1.print("IBM BSC COMMANDER> " );
+        Serial.println();
+        Serial.print("SELECTRIC> ");
     }
   } 
-  if (state != 2) {
-    if (digitalRead(READY)) {
-      digitalWrite(LED_BUILTIN, HIGH);
-      energizeSelectionSolenoids(val);
-      state = 0;
-    } else {
-      digitalWrite(LED_BUILTIN, LOW);
-      deEnergizeAllSolenoids();
-    }
-  }
-  if (digitalRead(BUSY) && (state == 0 )  ) {
-    state = 1;
-    ind++;
-    if (stringToPrint[ind]==0) {
-      state = 2;
-    }
+  switch (state) {
+    case 0:
+    // IDLE
+      break;
+    case 1:
+      if (isReady()) {
+        digitalWrite(LED_BUILTIN, HIGH);  
+        switch (cmd) {
+          case 0:
+            // Send a character
+            energizeSelectionSolenoids(val);
+            //Serial.print('E');
+            break;  
+          case 1:
+            break;
+        }
+      } else {
+        digitalWrite(LED_BUILTIN, LOW);
+        deEnergizeAllSolenoids();
+      }
+      if (isBusy()) {
+        digitalWrite(LED_BUILTIN, LOW);
+        deEnergizeAllSolenoids();
+        state = 2;
+      }
+      break;
+    case 2:
+      if (isReady()) {
+        if (tmp == 'A') {
+          ch = stringToPrint[ind++];
+          if (stringToPrint[ind]==0) {
+            ind=0;
+            state = 0;
+          } else {
+            val = asciiToCorrespondanceCode[ch & 0x7f];
+            state = 1;
+            cmd = 0;                     
+          }          
+        } else if (tmp == 'P') {
+          state = 0;
+        }
+      }
+      if (isBusy()) {
+        state = 2;
+        digitalWrite(LED_BUILTIN, LOW);
+        deEnergizeAllSolenoids();
+      }
+      break;
   }
   delay(1);
 }
