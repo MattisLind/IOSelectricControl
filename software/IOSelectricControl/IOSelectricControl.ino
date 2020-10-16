@@ -158,13 +158,18 @@ int shiftState;
 // the setup function runs once when you press reset or power the board
 void setup() {
   // initialize digital pin LED_BUILTIN as an output.
-  pinMode(PA2, OUTPUT); // T2
+  pinMode(PB9, OUTPUT); // T2
   pinMode(PA3, OUTPUT); // CK
   pinMode(PA4, OUTPUT); // T1
   pinMode(PA5, OUTPUT); // R2A
   pinMode(PA6, OUTPUT); // R1
   pinMode(PA7, OUTPUT); // R2
-  pinMode(PB0, OUTPUT); // R5  
+  pinMode(PB0, OUTPUT); // R5
+  pinMode(PB4, OUTPUT);
+  pinMode(PB5, OUTPUT);
+  pinMode(PB6, OUTPUT);
+  pinMode(PB7, OUTPUT);
+  pinMode(PB8, OUTPUT);  
   pinMode(PB1, INPUT);  // b input
   pinMode(PB10, INPUT); // a input - The ready to fire signal
   shiftState = SHIFT_LC; 
@@ -172,18 +177,26 @@ void setup() {
   Serial.write("SELECTRIC> ");
 }
 
-#define SOL_T2 PA2
+/*
+ * M PB6  SPACE
+ * P PB7  CR
+ * T PB8  SHIFT LOWER CASE
+ * R PB5  INDEX
+ * S PB4  SHIFT UPPER CASE
+ */
+
+#define SOL_T2 PB9
 #define SOL_CK PA3
 #define SOL_T1 PA4
 #define SOL_R2A PA5
 #define SOL_R1 PA6
 #define SOL_R2 PA7
 #define SOL_R5 PB0
-#define SOL_SP PA1
-#define SOL_UC PB2
-#define SOL_LC PB11
-#define SOL_INDEX PA0
-#define SOL_CR PC15
+#define SOL_SP PB6
+#define SOL_UC PB4
+#define SOL_LC PB8
+#define SOL_INDEX PB5
+#define SOL_CR PB7
 #define SOL_TAB PC14
 #define SOL_BSP PB9
 
@@ -245,9 +258,27 @@ bool energizeShiftSolenoids(int val) {
 }
 
 
+bool energizeCRSolenoid(int val) {
+  if (val & CC_CR) {
+    digitalWrite (SOL_CR, HIGH);
+    return true;
+  }
+  return false;
+}
+
 bool energizeSpaceSolenoid(int val) {
   if (val & CC_SP) {
     digitalWrite (SOL_SP, HIGH);
+    return true;
+  }
+  return false;
+}
+
+
+
+bool energizeIndexSolenoid(int val) {
+  if (val & CC_INDEX) {
+    digitalWrite (SOL_INDEX, HIGH);
     return true;
   }
   return false;
@@ -264,8 +295,9 @@ bool isBusy() {
   return digitalRead(BUSY)==HIGH;
 }
 
-char * stringToPrint = "CDEFGHIJKLMNOPQRSTUVXYZ0123456789A!\"#%&/(),.;:-";
+char * stringToPrint = "ABCDEFGHIJKLMNOPQRSTUVXYZ0123456789A!\"#%&/(),.;:-";
 
+int mode=0; 
 int cmd;
 int state = 0;
 int ind = 0;
@@ -281,54 +313,71 @@ void loop() {
     if ((tmp >= 'a') && (tmp <= 'z')) {
       tmp &= ~0x20; // to upper case
     }
-    switch (tmp) {
-      case 'P':
-        Serial.write(tmp);
-        Serial.println();
-        if (state != 0) {
-          Serial.println("Selectric not ready");
-        } else {
-          ch = stringToPrint[ind++];
-          if (stringToPrint[ind]==0) {
-            ind=0;
+    if (mode == 0) {
+      switch (tmp) {
+        case 'P':
+          Serial.write(tmp);
+          Serial.println();
+          if (state != 0) {
+            Serial.println("Selectric not ready");
+          } else {
+            ch = stringToPrint[ind++];
+            if (stringToPrint[ind]==0) {
+              ind=0;
+            }
+            val = asciiToCorrespondanceCode[ch & 0x7f];
+            state = 1;
+            cmd = 'P';
           }
-          val = asciiToCorrespondanceCode[ch & 0x7f];
-          state = 1;
-          cmd = 0;
-        }
-        Serial.print("SELECTRIC> ");
-        break;
-      case 'A':
-        Serial.write(tmp);
-        Serial.println();
-          ch = stringToPrint[ind++];
-          val = asciiToCorrespondanceCode[ch & 0x7f];
-          state = 1;
-          cmd = 0;
-        Serial.print("SELECTRIC> ");
-        break;
-      case 'H':
-        Serial.println();
-        Serial.println("IBM SELECTRIC 731 COMMANDER HELP");
-        Serial.println("=======================");
-        Serial.println("H - HELP");
-        Serial.println("C - Do a CR");
-        Serial.println("I - Do an Index");
-        Serial.println("P - Print a charcter - cycles through all off them.");
-        Serial.println("U - Set upper case");
-        Serial.println("L - Set lower case");
-        Serial.println("L - Set lower case");
-        Serial.println("T - Do a Tab operation");
-        Serial.println("S - Do a Space operation");
-        Serial.println("A - Print a line with the alphatbet and numbers");
-        Serial.println();
-        Serial.print("SELECTRIC> ");
-        break;
-      case '\r': 
-        Serial.println();
-        Serial.print("SELECTRIC> ");
+          Serial.print("SELECTRIC> ");
+          break;
+        case 'A':
+          Serial.write(tmp);
+          Serial.println();
+            ch = stringToPrint[ind++];
+            val = asciiToCorrespondanceCode[ch & 0x7f];
+            state = 1;
+            cmd = 'A';
+          Serial.print("SELECTRIC> ");
+          break;
+        case 'K':
+          Serial.write(tmp);
+          Serial.println();
+          mode = 1;
+          break;
+        case 'H':
+          Serial.println();
+          Serial.println("IBM SELECTRIC 731 COMMANDER HELP");
+          Serial.println("=======================");
+          Serial.println("H - HELP");
+          Serial.println("C - Do a CR");
+          Serial.println("I - Do an Index");
+          Serial.println("P - Print a charcter - cycles through all off them.");
+          Serial.println("U - Set upper case");
+          Serial.println("L - Set lower case");
+          Serial.println("L - Set lower case");
+          Serial.println("T - Do a Tab operation");
+          Serial.println("S - Do a Space operation");
+          Serial.println("K - Set keyboard mode");
+          Serial.println("A - Print a line with the alphatbet and numbers");
+          Serial.println();
+          Serial.print("SELECTRIC> ");
+          break;
+        case '\r': 
+          Serial.println();
+          Serial.print("SELECTRIC> ");
+      }
+    } else {
+      // Keyboard mode 
+      if (tmp == 0x03) { // Ctrl-C gets back to normal mode
+        mode = 0;
+      } else {
+        val = asciiToCorrespondanceCode[tmp & 0x7f];
+        state = 1;
+        cmd = 'P';
+      }
     }
-  } 
+  }
   switch (state) {
     case 0:
     // IDLE
@@ -336,15 +385,12 @@ void loop() {
     case 1:
       if (isReady()) {
         digitalWrite(LED_BUILTIN, HIGH);  
-        switch (cmd) {
-          case 0:
-            // Send a character
-            energizeSelectionSolenoids(val);
-            //Serial.print('E');
-            break;  
-          case 1:
-            break;
-        }
+        // Send a character
+        energizeSelectionSolenoids(val);
+        energizeSpaceSolenoid(val);
+        energizeCRSolenoid(val);
+        energizeIndexSolenoid(val);
+        //Serial.print('E');
       } else {
         digitalWrite(LED_BUILTIN, LOW);
         deEnergizeAllSolenoids();
@@ -357,7 +403,7 @@ void loop() {
       break;
     case 2:
       if (isReady()) {
-        if (tmp == 'A') {
+        if (cmd == 'A') {
           ch = stringToPrint[ind++];
           if (stringToPrint[ind]==0) {
             ind=0;
@@ -367,7 +413,7 @@ void loop() {
             state = 1;
             cmd = 0;                     
           }          
-        } else if (tmp == 'P') {
+        } else if (cmd == 'P') {
           state = 0;
         }
       }
