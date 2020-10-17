@@ -57,7 +57,7 @@ int asciiToCorrespondanceCode [] = {
   CC_UC | CC_T2 | CC_CK  | CC_T1  | CC_R1 | CC_R5, // $
   CC_UC | CC_T2 | CC_CK  | CC_T1  | CC_R2A | CC_R1 | CC_R2, // %
   CC_UC | CC_T2 | CC_T1  | CC_R2A  | CC_R1 | CC_R5, // &
-  CC_T1 | CC_R2A | CC_R1, // '
+  CC_UC | CC_T2 | CC_CK | CC_T1 | CC_R2A | CC_R1 | CC_R2 | CC_R5, // '
   CC_UC | CC_T2 | CC_CK | CC_T1, // (
   CC_UC | CC_T2 | CC_T1 | CC_R1, // )
   CC_UC | CC_T2 | CC_CK | CC_T1 | CC_R2A | CC_R5, // *
@@ -67,7 +67,7 @@ int asciiToCorrespondanceCode [] = {
   CC_UC | CC_T1 | CC_R2A | CC_R2, // .
   CC_CK | CC_R1 | CC_R5, //  /
   CC_T2 | CC_T1 | CC_R1, // 0
-  CC_T2 | CC_R1 | CC_R5, // 1
+  CC_T2 | CC_CK | CC_T1 | CC_R2A | CC_R1 | CC_R2 | CC_R5, // 1
   CC_T2 | CC_CK | CC_T1 | CC_R2A | CC_R2, // 2
   CC_T2 | CC_T1 | CC_R2A | CC_R2 | CC_R5, // 3
   CC_T2 | CC_CK | CC_T1 | CC_R1 | CC_R5, // 4
@@ -86,7 +86,7 @@ int asciiToCorrespondanceCode [] = {
   CC_UC | CC_T1 | CC_R2A | CC_R5, // A
   CC_UC | CC_T2, // B
   CC_UC | CC_T2 | CC_R2A | CC_R5, // C
-  CC_UC | CC_T2 | CC_CK | CC_R2A | CC_R5, // D
+  CC_UC | CC_T2 | CC_CK | CC_R2A | CC_R1 | CC_R5, // D
   CC_UC | CC_T2 | CC_R2A | CC_R1, // E
   CC_UC | CC_R2A | CC_R2 | CC_R5, // F
   CC_UC | CC_CK | CC_R2A | CC_R1 | CC_R2 | CC_R5, // G
@@ -118,7 +118,7 @@ int asciiToCorrespondanceCode [] = {
   CC_T1 | CC_R2A | CC_R5, // a
   CC_T2, // b
   CC_T2 | CC_R2A | CC_R5, // c
-  CC_T2 | CC_CK | CC_R2A | CC_R5, // d
+  CC_T2 | CC_CK | CC_R2A | CC_R1 | CC_R5, // d
   CC_T2 | CC_R2A | CC_R1, // e
   CC_R2A | CC_R2 | CC_R5, // f
   CC_CK | CC_R2A | CC_R1 | CC_R2 | CC_R5, // g
