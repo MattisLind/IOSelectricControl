@@ -1,6 +1,8 @@
 /*
   IOSelectricControl
 
+  STM32duino.com  Generic STMF103C Series  / STM32F103C8 20 k RAM 64 k flash ST-link
+
 */
 #define CC_NUL 0
 #define CC_R5  1 << 0
@@ -150,6 +152,51 @@ int asciiToCorrespondanceCode [] = {
 
 #define SHIFT_UC 1
 #define SHIFT_LC 0
+#define FDBCK_NC PE2
+#define FDBCK_NO PE3
+#define TAB_ILCK_NO PE4
+#define SOL_KBD_LOCK PE5
+#define SOL_TAB PE6
+#define SOL_R5 PC0
+#define SOL_R2 PC1
+#define SOL_R1 PC2
+#define SOL_R2A PC3
+#define TAB_NO PA0
+#define SP_NO PA1
+#define BSP_NO PA2
+#define CR_NO PA3
+#define INDEX_NO PA4
+#define UC_NO PA5
+#define LC_NO PA6
+#define C1_NC PA7
+#define SOL_T1 PC4
+#define SOL_CK PC5
+#define SOL_SP PE7
+#define SOL_BSP PE8
+#define SOL_CR PE9
+#define SOL_INDEX PE10
+#define SOL_UC PE11
+#define SOL_LC PE12
+#define SOL_RED PE13
+#define SOL_BLACK PE14
+#define EOL_NC PE15
+#define MODE_LC_NC PE1
+#define TAB_ILCK_NC PE0
+#define ODD_PARITY_NO PD7
+#define T2_NO PD6
+#define CK_NO PD5
+#define T1_NO PD4
+#define R2A_NO PD3
+#define R1_NO PD2
+#define R2_NO PD1
+#define R5_NO PD0
+#define C1_NO PC12
+#define KBD_NC PC10
+#define KBD_NO PC11
+#define RIBBON_NO PC9
+#define MODE_UC_NO PC8
+#define EOL_NO PC7
+#define SOL_T2 PC6
 
 int shiftState; 
 
@@ -158,21 +205,73 @@ int shiftState;
 // the setup function runs once when you press reset or power the board
 void setup() {
   // initialize digital pin LED_BUILTIN as an output.
-  pinMode(PB9, OUTPUT); // T2
-  pinMode(PA3, OUTPUT); // CK
-  pinMode(PA4, OUTPUT); // T1
-  pinMode(PA5, OUTPUT); // R2A
-  pinMode(PA6, OUTPUT); // R1
-  pinMode(PA7, OUTPUT); // R2
-  pinMode(PB0, OUTPUT); // R5
-  pinMode(PB4, OUTPUT);
-  pinMode(PB5, OUTPUT);
-  pinMode(PB6, OUTPUT);
-  pinMode(PB7, OUTPUT);
-  pinMode(PB8, OUTPUT);  
-  pinMode(PB1, INPUT);  // b input
-  pinMode(PB10, INPUT); // a input - The ready to fire signal
-  shiftState = SHIFT_LC; 
+  pinMode(FDBCK_NC, INPUT_PULLDOWN); 
+  pinMode(FDBCK_NO, INPUT_PULLDOWN); 
+  pinMode(TAB_ILCK_NO, INPUT_PULLDOWN);
+  digitalWrite(SOL_KBD_LOCK, LOW);
+  pinMode(SOL_KBD_LOCK, OUTPUT);
+  digitalWrite(SOL_TAB, LOW);
+  pinMode(SOL_TAB, OUTPUT); 
+  digitalWrite(SOL_R5, LOW);
+  pinMode(SOL_R5, OUTPUT); 
+  digitalWrite(SOL_R2, LOW);
+  pinMode(SOL_R2, OUTPUT);
+  digitalWrite(SOL_R1, LOW); 
+  pinMode(SOL_R1, OUTPUT);
+  digitalWrite(SOL_R2A, LOW);
+  pinMode(SOL_R2A, OUTPUT);
+  pinMode(TAB_NO, INPUT_PULLDOWN);
+  pinMode(SP_NO, INPUT_PULLDOWN);
+  pinMode(BSP_NO, INPUT_PULLDOWN);  
+  pinMode(CR_NO, INPUT_PULLDOWN);  
+  pinMode(INDEX_NO, INPUT_PULLDOWN); 
+  pinMode(UC_NO, INPUT_PULLDOWN); 
+  pinMode(LC_NO, INPUT_PULLDOWN);
+  pinMode(C1_NC, INPUT_PULLDOWN);
+  digitalWrite(SOL_T1, LOW);
+  pinMode(SOL_T1, OUTPUT);
+  digitalWrite(SOL_CK, LOW);
+  pinMode(SOL_CK, OUTPUT);
+  digitalWrite(SOL_SP, LOW);
+  pinMode(SOL_SP, OUTPUT);  
+  digitalWrite(SOL_BSP, LOW);
+  pinMode(SOL_BSP, OUTPUT);  
+  digitalWrite(SOL_CR, LOW);
+  pinMode(SOL_CR, OUTPUT); 
+  digitalWrite(SOL_INDEX, LOW);
+  pinMode(SOL_INDEX, OUTPUT);
+  digitalWrite(SOL_UC, LOW);
+  pinMode(SOL_UC, OUTPUT);  
+  digitalWrite(SOL_LC, LOW);
+  pinMode(SOL_LC, OUTPUT);  
+  digitalWrite(SOL_RED, LOW);
+  pinMode(SOL_RED, OUTPUT); 
+  digitalWrite(SOL_BLACK, LOW);
+  pinMode(SOL_BLACK, OUTPUT); 
+  pinMode(EOL_NC, INPUT_PULLDOWN);
+  pinMode(MODE_LC_NC, INPUT_PULLDOWN);
+  pinMode(TAB_ILCK_NC, INPUT_PULLDOWN);  
+  pinMode(ODD_PARITY_NO, INPUT_PULLDOWN);  
+  pinMode(T2_NO, INPUT_PULLDOWN); 
+  pinMode(CK_NO, INPUT_PULLDOWN); 
+  pinMode(T1_NO, INPUT_PULLDOWN);
+  pinMode(R2A_NO, INPUT_PULLDOWN);
+  pinMode(R1_NO, INPUT_PULLDOWN); 
+  pinMode(R2_NO, INPUT_PULLDOWN); 
+  pinMode(R5_NO, INPUT_PULLDOWN);
+  pinMode(C1_NO, INPUT_PULLDOWN);
+  pinMode(KBD_NO, INPUT_PULLDOWN);
+  digitalWrite(KBD_NO, LOW);
+  pinMode(KBD_NC, INPUT_PULLDOWN); 
+  digitalWrite(KBD_NC, LOW);
+  pinMode(RIBBON_NO, INPUT_PULLDOWN);
+  digitalWrite(RIBBON_NO, LOW); 
+  pinMode(MODE_UC_NO, INPUT_PULLDOWN);
+  digitalWrite(MODE_UC_NO, LOW);
+  pinMode(EOL_NO, INPUT_PULLDOWN);
+  digitalWrite(EOL_NO, LOW);
+  digitalWrite(SOL_T2, LOW);
+  pinMode(SOL_T2, OUTPUT);
   Serial.begin(9600);
   Serial.write("SELECTRIC> ");
 }
@@ -185,43 +284,45 @@ void setup() {
  * S PB4  SHIFT UPPER CASE
  */
 
-#define SOL_T2 PB9
-#define SOL_CK PA3
-#define SOL_T1 PA4
-#define SOL_R2A PA5
-#define SOL_R1 PA6
-#define SOL_R2 PA7
-#define SOL_R5 PB0
-#define SOL_SP PB6
-#define SOL_UC PB4
-#define SOL_LC PB8
-#define SOL_INDEX PB5
-#define SOL_CR PB7
-#define SOL_TAB PC14
-#define SOL_BSP PB9
 
-void energizeSelectionSolenoids (int val) {
+
+
+
+
+
+
+
+bool energizeSelectionSolenoids (int val) {
+  bool ret = false;
   if (val & CC_T2) { 
     digitalWrite (SOL_T2, HIGH);
+    ret = true;
   } 
   if (val & CC_CK) { 
     digitalWrite (SOL_CK, HIGH);
+    ret = true;
   } 
   if (val & CC_T1) { 
     digitalWrite (SOL_T1, HIGH);
+    ret = true;
   } 
   if (val & CC_R2A) { 
     digitalWrite (SOL_R2A, HIGH);
+    ret = true;
   } 
   if (val & CC_R1) { 
     digitalWrite (SOL_R1, HIGH);
+    ret = true;
   } 
   if (val & CC_R2) { 
     digitalWrite (SOL_R2, HIGH);
+    ret = true;
   } 
   if (val & CC_R5) { 
     digitalWrite (SOL_R5, HIGH);
+    ret = true;
   } 
+  return ret;
 }
 
 void deEnergizeAllSolenoids() {
@@ -243,18 +344,21 @@ void deEnergizeAllSolenoids() {
 
 
 bool energizeShiftSolenoids(int val) {
+  Serial.println(val,HEX);
   if (val & CC_UC) { // We need to go to UpperCase
-    if (shiftState = SHIFT_LC) { // but currently we are in lower case
+    Serial.println(digitalRead(MODE_LC_NC));
+    if (HIGH == (digitalRead(MODE_LC_NC))) { // but currently we are in lower case
       digitalWrite (SOL_UC, HIGH); // start moving to uppercase
       return true;
     }
   } else { // We need to go to Lower Case
-    if (shiftState == SHIFT_UC) { // but we are in upper case
+    Serial.println(digitalRead(MODE_UC_NO));
+    if (HIGH == (digitalRead(MODE_UC_NO))) { // but we are in upper case
       digitalWrite (SOL_LC, HIGH); // energize lower case solenoid.
-      return true; // operation in progress 
+      return true;
     }
   }
-  return false; // didn't do anything
+  return false;
 }
 
 
@@ -284,145 +388,111 @@ bool energizeIndexSolenoid(int val) {
   return false;
 }
 
-#define READY PB10
-#define BUSY PB1
 
 bool isReady() {
-  return digitalRead(READY)==HIGH;
+  return digitalRead(FDBCK_NC)==HIGH;
 }
 
 bool isBusy() {
-  return digitalRead(BUSY)==HIGH;
+  return digitalRead(FDBCK_NO)==HIGH;
 }
 
-char * stringToPrint = "ABCDEFGHIJKLMNOPQRSTUVXYZ0123456789A!\"#%&/(),.;:-";
+void waitForFeedback() {
+  while (isReady()); // Wait until we go busy then we turn of solenoids
+  deEnergizeAllSolenoids();
+  while (!isReady()); // Wait until we get ready again.  
+}
 
-int mode=0; 
-int cmd;
-int state = 0;
-int ind = 0;
-char ch = stringToPrint[ind];
-int val = asciiToCorrespondanceCode[ch & 0x7f];
-char tmp;
+
+#define TAB 9
+#define CR 13
+#define SP 32
+#define INDEX 10
+#define BSP 8
+
+int getFunctionCode () {
+  // Test TAB, CR, BS, INDEX or SP to see if any of those has been pressed
+  if (digitalRead(INDEX_NO) == 1) {
+    Serial.println("INDEX"); 
+    return INDEX;  
+  } 
+  if (digitalRead(CR_NO) == 1) {
+    Serial.println("CR"); 
+    return CR;  
+  }
+  if (digitalRead(BSP_NO) == 1) {
+    Serial.println("BSP"); 
+    return BSP;  
+  }
+  if (digitalRead(TAB_NO) == 1) {
+    Serial.println("TAB"); 
+    return TAB;  
+  }
+  if (digitalRead(SP_NO) == 1) {
+    Serial.println("SP"); 
+    return SP;  
+  }
+  return 0;
+}
+
+
 
 // the loop function runs over and over again forever
 void loop() {
- 
-  if (Serial.available()> 0) {
-    tmp = Serial.read();
-    if ((tmp >= 'a') && (tmp <= 'z')) {
-      tmp &= ~0x20; // to upper case
-    }
-    if (mode == 0) {
-      switch (tmp) {
-        case 'P':
-          Serial.write(tmp);
-          Serial.println();
-          if (state != 0) {
-            Serial.println("Selectric not ready");
-          } else {
-            ch = stringToPrint[ind++];
-            if (stringToPrint[ind]==0) {
-              ind=0;
-            }
-            val = asciiToCorrespondanceCode[ch & 0x7f];
-            state = 1;
-            cmd = 'P';
-          }
-          Serial.print("SELECTRIC> ");
-          break;
-        case 'A':
-          Serial.write(tmp);
-          Serial.println();
-            ch = stringToPrint[ind++];
-            val = asciiToCorrespondanceCode[ch & 0x7f];
-            state = 1;
-            cmd = 'A';
-          Serial.print("SELECTRIC> ");
-          break;
-        case 'K':
-          Serial.write(tmp);
-          Serial.println();
-          mode = 1;
-          break;
-        case 'H':
-          Serial.println();
-          Serial.println("IBM SELECTRIC 731 COMMANDER HELP");
-          Serial.println("=======================");
-          Serial.println("H - HELP");
-          Serial.println("C - Do a CR");
-          Serial.println("I - Do an Index");
-          Serial.println("P - Print a charcter - cycles through all off them.");
-          Serial.println("U - Set upper case");
-          Serial.println("L - Set lower case");
-          Serial.println("L - Set lower case");
-          Serial.println("T - Do a Tab operation");
-          Serial.println("S - Do a Space operation");
-          Serial.println("K - Set keyboard mode");
-          Serial.println("A - Print a line with the alphatbet and numbers");
-          Serial.println();
-          Serial.print("SELECTRIC> ");
-          break;
-        case '\r': 
-          Serial.println();
-          Serial.print("SELECTRIC> ");
-      }
-    } else {
-      // Keyboard mode 
-      if (tmp == 0x03) { // Ctrl-C gets back to normal mode
-        mode = 0;
+  bool busy;
+  char tmp;
+  int val;
+  if (isBusy()) {
+    delay (1);
+    if (isBusy()) {
+      if ((val = getFunctionCode()) != 0) {
+         Serial.write(val); 
+         while (isBusy());
+         if ((val == TAB) || (val == CR)) {
+           while(digitalRead(TAB_ILCK_NO)==1);  // Wait until CR or TAB is completed. 
+         }
       } else {
-        val = asciiToCorrespondanceCode[tmp & 0x7f];
-        state = 1;
-        cmd = 'P';
-      }
-    }
-  }
-  switch (state) {
-    case 0:
-    // IDLE
-      break;
-    case 1:
-      if (isReady()) {
-        digitalWrite(LED_BUILTIN, HIGH);  
-        // Send a character
-        energizeSelectionSolenoids(val);
-        energizeSpaceSolenoid(val);
-        energizeCRSolenoid(val);
-        energizeIndexSolenoid(val);
-        //Serial.print('E');
-      } else {
-        digitalWrite(LED_BUILTIN, LOW);
-        deEnergizeAllSolenoids();
-      }
-      if (isBusy()) {
-        digitalWrite(LED_BUILTIN, LOW);
-        deEnergizeAllSolenoids();
-        state = 2;
-      }
-      break;
-    case 2:
-      if (isReady()) {
-        if (cmd == 'A') {
-          ch = stringToPrint[ind++];
-          if (stringToPrint[ind]==0) {
-            ind=0;
-            state = 0;
+        // The feedback signal was due to a normal letter or digit was pressed
+        if (digitalRead(C1_NO)==1) {
+          delay(1);
+          if (digitalRead(C1_NO)==1) { 
+            // Sample selection contacts 
+            val = (digitalRead(R5_NO)? CC_R5:0);
+            Serial.print(val,HEX);
+            Serial.print(" ");
+            val |= (digitalRead(R2_NO)?CC_R2:0);
+            Serial.print(val,HEX);
+            Serial.print(" ");
+            val |= (digitalRead(R1_NO)?CC_R1:0);
+            Serial.print(val,HEX);
+            Serial.print(" ");
+            val |= (digitalRead(R2A_NO)?CC_R2A:0);
+            Serial.print(val,HEX);
+            Serial.print(" ");
+            val |= (digitalRead(T1_NO)?CC_T1:0);
+            Serial.print(val,HEX);
+            Serial.print(" ");
+            val |= (digitalRead(CK_NO)?CC_CK:0);
+            Serial.print(val,HEX); 
+            Serial.print(" ");
+            val |= (digitalRead(T2_NO)?CC_T2:0);
+            while (isBusy());
+            Serial.println(val,HEX);
           } else {
-            val = asciiToCorrespondanceCode[ch & 0x7f];
-            state = 1;
-            cmd = 0;                     
-          }          
-        } else if (cmd == 'P') {
-          state = 0;
+            return; // Just a glitch.
+          }  
         }
       }
-      if (isBusy()) {
-        state = 2;
-        digitalWrite(LED_BUILTIN, LOW);
-        deEnergizeAllSolenoids();
-      }
-      break;
+    } else {
+      return; // This was just a glicth
+    }
   }
-  delay(1);
+  if (Serial.available()> 0) {
+    tmp = Serial.read();
+    val = asciiToCorrespondanceCode[tmp & 0x7f];
+    busy = energizeShiftSolenoids(val);
+    if (busy) waitForFeedback();
+    busy = energizeSelectionSolenoids (val);
+    if (busy) waitForFeedback();
+  }
 }
